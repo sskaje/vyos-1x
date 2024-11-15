@@ -71,7 +71,8 @@ def verify(wireguard):
         raise ConfigError('Wireguard private-key not defined')
 
     if 'peer' not in wireguard:
-        raise ConfigError('At least one Wireguard peer is required!')
+        # T6490: initialize an empty peer object
+        wireguard['peer'] = {}
 
     if 'port' in wireguard and 'port_changed' in wireguard:
         listen_port = int(wireguard['port'])

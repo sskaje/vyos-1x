@@ -195,6 +195,9 @@ class WireGuardIf(Interface):
 
         base_cmd += f' private-key {tmp_file.name}'
         base_cmd = base_cmd.format(**config)
+        # T6490: execute command to ensure interface configured
+        self._cmd(base_cmd)
+
         if 'peer' in config:
             for peer, peer_config in config['peer'].items():
                 # T4702: No need to configure this peer when it was explicitly
