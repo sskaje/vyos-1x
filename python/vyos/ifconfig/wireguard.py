@@ -170,12 +170,15 @@ class WireGuardOperational(Operational):
 
                 if not address or not port:
                     if peer_name is not None:
-                        print(f"Peer {peer_name} endpoint not set")
+                        print(f'Peer {peer_name} endpoint not set')
                     continue
 
                 cmd = f"wg set {self.config['ifname']} peer {public_key} endpoint {address}:{port}"
                 try:
-                    print(f"Resetting {self.config['ifname']} peer {public_key} endpoint to {address}:{port} ... ", end='')
+                    print(
+                        f'Resetting {self.config['ifname']} peer {public_key} endpoint to {address}:{port} ... ',
+                        end=''
+                    )
                     self._cmd(cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'})
                     print('done')
                 except:
@@ -272,7 +275,10 @@ class WireGuardIf(Interface):
                         else:
                             cmd += ' endpoint {address}:{port}'
 
-                    self._cmd(cmd.format(**peer_config), env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'})
+                    self._cmd(
+                        cmd.format(**peer_config),
+                        env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'},
+                    )
                 except:
                     # todo: logging
                     pass
