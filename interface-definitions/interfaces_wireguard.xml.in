@@ -98,9 +98,14 @@
                     <format>ipv6</format>
                     <description>IPv6 address of remote tunnel endpoint</description>
                   </valueHelp>
+                  <valueHelp>
+                    <format>hostname</format>
+                    <description>Endpoint FQDN</description>
+                  </valueHelp>
                   <constraint>
                     <validator name="ip-address"/>
                     <validator name="ipv6-link-local"/>
+                    <validator name="fqdn"/>
                   </constraint>
                 </properties>
               </leafNode>

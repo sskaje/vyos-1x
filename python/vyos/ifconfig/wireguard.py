@@ -156,6 +156,31 @@ class WireGuardOperational(Operational):
                 answer += '\n'
         return answer
 
+    def reset_peer(self, interface, peer_name=None):
+        from vyos.config import Config
+
+        c = Config()
+        c.set_level(['interfaces', 'wireguard', self.config['ifname']])
+
+        for peer in c.list_effective_nodes(['peer']):
+            if peer_name is None or peer == peer_name:
+                public_key = c.return_effective_value(['peer', peer, 'public-key'])
+                address = c.return_effective_value(['peer', peer, 'address'])
+                port = c.return_effective_value(['peer', peer, 'port'])
+
+                if not address or not port:
+                    if peer_name is not None:
+                        print(f"Peer {peer_name} endpoint not set")
+                    continue
+
+                cmd = f"wg set {self.config['ifname']} peer {public_key} endpoint {address}:{port}"
+                try:
+                    print(f"Resetting {self.config['ifname']} peer {public_key} endpoint to {address}:{port} ... ", end='')
+                    self._cmd(cmd)
+                    print('done')
+                except:
+                    print(f'error\nPlease try to run command `{cmd}` manually')
+
 
 @Interface.register
 class WireGuardIf(Interface):
