@@ -176,10 +176,10 @@ class WireGuardOperational(Operational):
                 cmd = f"wg set {self.config['ifname']} peer {public_key} endpoint {address}:{port}"
                 try:
                     print(f"Resetting {self.config['ifname']} peer {public_key} endpoint to {address}:{port} ... ", end='')
-                    self._cmd(cmd)
+                    self._cmd(cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'})
                     print('done')
                 except:
-                    print(f'error\nPlease try to run command `{cmd}` manually')
+                    print(f'Error\nPlease try to run command manually:\n{cmd}')
 
 
 @Interface.register
@@ -222,7 +222,6 @@ class WireGuardIf(Interface):
 
         interface_cmd += f' private-key {tmp_file.name}'
         interface_cmd = interface_cmd.format(**config)
-        print('WG: ', interface_cmd)
         # T6490: execute command to ensure interface configured
         self._cmd(interface_cmd)
 
@@ -262,7 +261,6 @@ class WireGuardIf(Interface):
                         peer_config['allowed_ips'] = [peer_config['allowed_ips']]
                     cmd += ' allowed-ips ' + ','.join(peer_config['allowed_ips'])
 
-                    print('WG: ', cmd.format(**peer_config))
                     self._cmd(cmd.format(**peer_config))
 
                     cmd = peer_cmd
@@ -274,8 +272,7 @@ class WireGuardIf(Interface):
                         else:
                             cmd += ' endpoint {address}:{port}'
 
-                    print('WG: ', cmd.format(**peer_config))
-                    self._cmd(cmd.format(**peer_config))
+                    self._cmd(cmd.format(**peer_config), env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'})
                 except:
                     # todo: logging
                     pass
