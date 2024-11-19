@@ -212,16 +212,23 @@ class WireGuardIf(Interface):
         tmp_file.flush()
 
         # Wireguard base command is identical for every peer
-        base_cmd = 'wg set {ifname}'
-        if 'port' in config:
-            base_cmd += ' listen-port {port}'
-        if 'fwmark' in config:
-            base_cmd += ' fwmark {fwmark}'
+        base_cmd = 'wg set ' + config['ifname']
 
-        base_cmd += f' private-key {tmp_file.name}'
-        base_cmd = base_cmd.format(**config)
+        interface_cmd = base_cmd
+        if 'port' in config:
+            interface_cmd += ' listen-port {port}'
+        if 'fwmark' in config:
+            interface_cmd += ' fwmark {fwmark}'
+
+        interface_cmd += f' private-key {tmp_file.name}'
+        interface_cmd = interface_cmd.format(**config)
+        print('WG: ', interface_cmd)
         # T6490: execute command to ensure interface configured
-        self._cmd(base_cmd)
+        self._cmd(interface_cmd)
+
+        # If no PSK is given remove it by using /dev/null - passing keys via
+        # the shell (usually bash) is considered insecure, thus we use a file
+        no_psk_file = '/dev/null'
 
         if 'peer' in config:
             for peer, peer_config in config['peer'].items():
@@ -231,41 +238,51 @@ class WireGuardIf(Interface):
                 if 'disable' in peer_config:
                     continue
 
-                # start of with a fresh 'wg' command
-                cmd = base_cmd + ' peer {public_key}'
-
-                # If no PSK is given remove it by using /dev/null - passing keys via
-                # the shell (usually bash) is considered insecure, thus we use a file
-                no_psk_file = '/dev/null'
                 psk_file = no_psk_file
-                if 'preshared_key' in peer_config:
-                    psk_file = '/tmp/tmp.wireguard.psk'
-                    with open(psk_file, 'w') as f:
-                        f.write(peer_config['preshared_key'])
-                cmd += f' preshared-key {psk_file}'
 
-                # Persistent keepalive is optional
-                if 'persistent_keepalive' in peer_config:
-                    cmd += ' persistent-keepalive {persistent_keepalive}'
+                # start of with a fresh 'wg' command
+                peer_cmd = base_cmd + ' peer {public_key}'
 
-                # Multiple allowed-ip ranges can be defined - ensure we are always
-                # dealing with a list
-                if isinstance(peer_config['allowed_ips'], str):
-                    peer_config['allowed_ips'] = [peer_config['allowed_ips']]
-                cmd += ' allowed-ips ' + ','.join(peer_config['allowed_ips'])
+                try:
+                    cmd = peer_cmd
 
-                # Endpoint configuration is optional
-                if {'address', 'port'} <= set(peer_config):
-                    if is_ipv6(peer_config['address']):
-                        cmd += ' endpoint [{address}]:{port}'
-                    else:
-                        cmd += ' endpoint {address}:{port}'
+                    if 'preshared_key' in peer_config:
+                        psk_file = '/tmp/tmp.wireguard.psk'
+                        with open(psk_file, 'w') as f:
+                            f.write(peer_config['preshared_key'])
+                    cmd += f' preshared-key {psk_file}'
 
-                self._cmd(cmd.format(**peer_config))
+                    # Persistent keepalive is optional
+                    if 'persistent_keepalive' in peer_config:
+                        cmd += ' persistent-keepalive {persistent_keepalive}'
 
-                # PSK key file is not required to be stored persistently as its backed by CLI
-                if psk_file != no_psk_file and os.path.exists(psk_file):
-                    os.remove(psk_file)
+                    # Multiple allowed-ip ranges can be defined - ensure we are always
+                    # dealing with a list
+                    if isinstance(peer_config['allowed_ips'], str):
+                        peer_config['allowed_ips'] = [peer_config['allowed_ips']]
+                    cmd += ' allowed-ips ' + ','.join(peer_config['allowed_ips'])
+
+                    print('WG: ', cmd.format(**peer_config))
+                    self._cmd(cmd.format(**peer_config))
+
+                    cmd = peer_cmd
+
+                    # Ensure peer is created even if dns not working
+                    if {'address', 'port'} <= set(peer_config):
+                        if is_ipv6(peer_config['address']):
+                            cmd += ' endpoint [{address}]:{port}'
+                        else:
+                            cmd += ' endpoint {address}:{port}'
+
+                    print('WG: ', cmd.format(**peer_config))
+                    self._cmd(cmd.format(**peer_config))
+                except:
+                    # todo: logging
+                    pass
+                finally:
+                    # PSK key file is not required to be stored persistently as its backed by CLI
+                    if psk_file != no_psk_file and os.path.exists(psk_file):
+                        os.remove(psk_file)
 
         # call base class
         super().update(config)
