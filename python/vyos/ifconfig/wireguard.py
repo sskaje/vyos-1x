@@ -176,7 +176,7 @@ class WireGuardOperational(Operational):
                 cmd = f"wg set {self.config['ifname']} peer {public_key} endpoint {address}:{port}"
                 try:
                     print(
-                        f'Resetting {self.config['ifname']} peer {public_key} endpoint to {address}:{port} ... ',
+                        f'Resetting {self.config["ifname"]} peer {public_key} endpoint to {address}:{port} ... ',
                         end='',
                     )
                     self._cmd(cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'})
