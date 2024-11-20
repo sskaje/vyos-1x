@@ -206,6 +206,20 @@ def apply(options):
     # Reload UDEV, required for USB auto suspend
     cmd('udevadm control --reload-rules')
 
+    if 'resolv' in options:
+        import vyos.hostsd_client
+
+        option_list = []
+        for key, value in options['resolv'].items():
+            if isinstance(value, dict) and not value:  # 检查值是否为空字典
+                option_list.append(key)
+            else:
+                option_list.append(f'{key}:{value}')
+
+        hc = vyos.hostsd_client.Client()
+        hc.set_options(option_list)
+        hc.apply()
+
     # Enable/disable dynamic debugging for kernel modules
     modules = ['wireguard']
     modules_enabled = dict_search('kernel.debug', options) or []

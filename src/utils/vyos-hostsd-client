@@ -50,6 +50,8 @@ group.add_argument('--get-hosts', type=str, const='.*', nargs='?')
 
 group.add_argument('--set-host-name', type=str)
 
+group.add_argument('--set-options', action='store_true')
+
 # for --set-host-name
 parser.add_argument('--domain-name', type=str)
 
@@ -59,6 +61,9 @@ parser.add_argument('--addnta', action='store_true')
 parser.add_argument('--recursion-desired', action='store_true')
 
 parser.add_argument('--tag', type=str)
+
+# for resolv.conf options
+parser.add_argument('--option', action='append')
 
 # users must call --apply either in the same command or after they're done
 parser.add_argument('--apply', action="store_true")
@@ -145,7 +150,10 @@ try:
         if not args.domain_name:
             raise ValueError('--domain-name is required for this operation')
         client.set_host_name({'host_name': args.set_host_name, 'domain_name': args.domain_name})
-
+    elif args.set_options:
+        if not args.option:
+            raise ValueError('--option is required for this operation')
+        client.set_options(args.option)
     elif args.apply:
         pass
     else:

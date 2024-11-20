@@ -23,3 +23,8 @@ domain {{ domain_name }}
 search {{ search_domains[tag] | join(' ') }}
 {%     endif %}
 {% endfor %}
+
+{% if options %}
+options {{ options }}
+{% endif %}
+

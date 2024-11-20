@@ -231,6 +231,14 @@
 #       'domain_name': '<str domainname>'
 #     }
 # }
+### options
+#
+# { 'type': 'options',
+#   'op': 'set',
+#   'data': {
+#       'options': ['<str option1>', ...]
+#     }
+# }
 
 import os
 import sys
@@ -286,7 +294,8 @@ STATE = {
     "host_name": "vyos",
     "domain_name": "",
     "search_domains": {},
-    "changes": 0
+    "changes": 0,
+    'options': []
     }
 
 # the base schema that every received message must be in
@@ -295,7 +304,7 @@ base_schema = Schema({
     'type': Any('name_servers',
         'name_server_tags_recursor', 'name_server_tags_system',
         'forward_zones', 'authoritative_zones', 'search_domains',
-        'hosts', 'host_name'),
+        'hosts', 'host_name', 'options'),
     'data': Any(list, dict),
     'tag': str,
     'tag_regex': str
@@ -314,6 +323,12 @@ host_name_add_schema = op_type_schema.extend({
     'data': {
         'host_name': str,
         'domain_name': Any(str, None)
+        }
+    }, required=True)
+
+options_set_schema = op_type_schema.extend({
+    'data': {
+        'options': Any([str], None)
         }
     }, required=True)
 
@@ -393,6 +408,9 @@ msg_schema_map = {
     'host_name': {
         'set': host_name_add_schema
         },
+    'options': {
+        'set': options_set_schema,
+    },
     None: {
         'apply': op_schema
         }
@@ -454,6 +472,10 @@ def set_host_name(state, data):
         state['host_name'] = data['host_name']
     if 'domain_name' in data:
         state['domain_name'] = data['domain_name']
+
+def set_options(state, data):
+    if 'options' in data and len(data['options']) > 0:
+        state['options'] = ' '.join(data['options'])
 
 def add_items_to_dict(_dict, items):
     """
@@ -575,6 +597,8 @@ def handle_message(msg):
         data = get_option(msg, 'data')
         if _type == 'host_name':
             set_host_name(STATE, data)
+        elif _type == 'options':
+            set_options(STATE, data)
         else:
             raise ValueError(f'Operation "{op}" unknown data type "{_type}"')
     elif op == 'get':

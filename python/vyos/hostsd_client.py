@@ -126,6 +126,16 @@ class Client(object):
         }
         self._communicate(msg)
 
+    def set_options(self, options):
+        msg = {
+            'type': 'options',
+            'op': 'set',
+            'data': {
+                'options': options,
+            }
+        }
+        self._communicate(msg)
+
     def apply(self):
         msg = {'op': 'apply'}
         return self._communicate(msg)
