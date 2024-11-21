@@ -161,6 +161,7 @@ class WireGuardOperational(Operational):
 
         c = Config()
         c.set_level(['interfaces', 'wireguard', self.config['ifname']])
+        max_dns_retry = c.return_effective_value(['max-dns-retry'], 3)
 
         for peer in c.list_effective_nodes(['peer']):
             if peer_name is None or peer == peer_name:
@@ -179,7 +180,7 @@ class WireGuardOperational(Operational):
                         f'Resetting {self.config["ifname"]} peer {public_key} endpoint to {address}:{port} ... ',
                         end='',
                     )
-                    self._cmd(cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'})
+                    self._cmd(cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': str(max_dns_retry)})
                     print('done')
                 except:
                     print(f'Error\nPlease try to run command manually:\n{cmd}')
@@ -216,6 +217,7 @@ class WireGuardIf(Interface):
 
         # Wireguard base command is identical for every peer
         base_cmd = 'wg set ' + config['ifname']
+        max_dns_retry = config['max_dns_retry']
 
         interface_cmd = base_cmd
         if 'port' in config:
@@ -277,7 +279,7 @@ class WireGuardIf(Interface):
 
                     self._cmd(
                         cmd.format(**peer_config),
-                        env={'WG_ENDPOINT_RESOLUTION_RETRIES': '5'},
+                        env={'WG_ENDPOINT_RESOLUTION_RETRIES': str(max_dns_retry)},
                     )
                 except:
                     # todo: logging
