@@ -24,7 +24,7 @@ from hurry.filesize import alternative
 
 from vyos.ifconfig import Interface
 from vyos.ifconfig import Operational
-from vyos.template import is_ipv6
+from vyos.template import is_ipv6, is_ipv4
 
 
 class WireGuardOperational(Operational):
@@ -156,7 +156,30 @@ class WireGuardOperational(Operational):
                 answer += '\n'
         return answer
 
-    def reset_peer(self, interface, peer_name=None):
+    def get_latest_handshakes(self):
+
+        """Get latest handshake time for each peer"""
+        output = {}
+
+        # Dump wireguard last handshake
+        _f = self._cmd(f'wg show {self.config["ifname"]} latest-handshakes')
+        # Output:
+        # xxxw=    1732812147
+        # xxx=    0
+        for line in _f.split('\n'):
+            if not line:
+                # Skip empty lines and last line
+                continue
+            items = line.split('\t')
+
+            if len(items) != 2:
+                continue
+
+            output[items[0]] = int(items[1])
+
+        return output
+
+    def reset_peer(self, peer_name=None, public_key=None):
         from vyos.config import Config
 
         c = Config()
@@ -164,8 +187,8 @@ class WireGuardOperational(Operational):
         max_dns_retry = c.return_effective_value(['max-dns-retry'], 3)
 
         for peer in c.list_effective_nodes(['peer']):
-            if peer_name is None or peer == peer_name:
-                public_key = c.return_effective_value(['peer', peer, 'public-key'])
+            peer_public_key = c.return_effective_value(['peer', peer, 'public-key'])
+            if peer_name is None or peer == peer_name or public_key == peer_public_key:
                 address = c.return_effective_value(['peer', peer, 'address'])
                 port = c.return_effective_value(['peer', peer, 'port'])
 
@@ -174,10 +197,13 @@ class WireGuardOperational(Operational):
                         print(f'Peer {peer_name} endpoint not set')
                     continue
 
-                cmd = f"wg set {self.config['ifname']} peer {public_key} endpoint {address}:{port}"
+                if c.exists_effective(['peer', peer, 'disable']):
+                    continue
+
+                cmd = f"wg set {self.config['ifname']} peer {peer_public_key} endpoint {address}:{port}"
                 try:
                     print(
-                        f'Resetting {self.config["ifname"]} peer {public_key} endpoint to {address}:{port} ... ',
+                        f'Resetting {self.config["ifname"]} peer {peer_public_key} endpoint to {address}:{port} ... ',
                         end='',
                     )
                     self._cmd(cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': str(max_dns_retry)})
@@ -240,6 +266,9 @@ class WireGuardIf(Interface):
                 # marked as disabled - also active sessions are terminated as
                 # the public key was already removed when entering this method!
                 if 'disable' in peer_config:
+                    # remove peer if disabled, no error report even if peer not exists
+                    cmd = base_cmd + ' peer {public_key} remove'
+                    self._cmd(cmd.format(**peer_config))
                     continue
 
                 psk_file = no_psk_file
@@ -274,8 +303,11 @@ class WireGuardIf(Interface):
                     if {'address', 'port'} <= set(peer_config):
                         if is_ipv6(peer_config['address']):
                             cmd += ' endpoint [{address}]:{port}'
-                        else:
+                        elif is_ipv4(peer_config['address']):
                             cmd += ' endpoint {address}:{port}'
+                        else:
+                            # don't set endpoint if address uses domain name
+                            continue
 
                     self._cmd(
                         cmd.format(**peer_config),

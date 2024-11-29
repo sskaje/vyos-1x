@@ -26,12 +26,14 @@ from vyos.utils.dict import dict_search_args
 from vyos.utils.process import cmd
 from vyos.utils.process import run
 from vyos.xml_ref import get_defaults
+from vyos.template import is_ip
 
 base = ['firewall']
 timeout = 300
 cache = False
 base_firewall = ['firewall']
 base_nat = ['nat']
+base_interfaces = ['interfaces']
 
 domain_state = {}
 
@@ -165,6 +167,39 @@ def update_fqdn(config, node):
 
     print(f'Updated {count} sets in {node} - result: {code}')
 
+def update_interfaces(config, node):
+    if node == 'interfaces':
+        wireguard_interfaces = dict_search_args(config, 'wireguard')
+
+        handshake_threshold = 300
+
+        from vyos.ifconfig import WireGuardIf
+
+        check_wireguard_peer_public_keys = {}
+        # for each wireguard interfaces
+        for interface, wireguard in wireguard_interfaces.items():
+            check_wireguard_peer_public_keys[interface] = []
+            for peer, peer_config in wireguard['peer'].items():
+                # check peer if peer address is not ipv4 and not ipv6
+                if 'address' in peer_config and not is_ip(peer_config['address']):
+                    # check latest handshake
+                    check_wireguard_peer_public_keys[interface].append(peer_config['public_key'])
+
+        now_time = time.time()
+        for interface, check_peer_public_keys in check_wireguard_peer_public_keys.items():
+            if len(check_peer_public_keys) == 0:
+                continue
+
+            intf = WireGuardIf(interface, create=False, debug=False)
+            handshakes = intf.operational.get_latest_handshakes()
+
+            for public_key, handshake_time in handshakes.items():
+                if public_key in check_peer_public_keys and (handshake_time == 0 or now_time - handshake_time > handshake_threshold):
+                    intf.operational.reset_peer(public_key=public_key)
+
+                    print(f'Wireguard: reset {interface} peer {public_key}')
+
+
 if __name__ == '__main__':
     print(f'VyOS domain resolver')
 
@@ -178,10 +213,12 @@ if __name__ == '__main__':
     conf = ConfigTreeQuery()
     firewall = get_config(conf, base_firewall)
     nat = get_config(conf, base_nat)
+    interfaces = get_config(conf, base_interfaces)
 
     print(f'interval: {timeout}s - cache: {cache}')
 
     while True:
         update_fqdn(firewall, 'firewall')
         update_fqdn(nat, 'nat')
+        update_interfaces(interfaces, 'interfaces')
         time.sleep(timeout)

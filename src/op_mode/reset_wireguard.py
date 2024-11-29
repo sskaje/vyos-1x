@@ -42,7 +42,7 @@ def _verify(func):
 @_verify
 def reset_peer(interface: str, peer: typing.Optional[str] = None):
     intf = WireGuardIf(interface, create=False, debug=False)
-    return intf.operational.reset_peer(interface, peer)
+    return intf.operational.reset_peer(peer)
 
 
 if __name__ == '__main__':
