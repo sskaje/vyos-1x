@@ -206,7 +206,9 @@ class WireGuardOperational(Operational):
                         f'Resetting {self.config["ifname"]} peer {peer_public_key} endpoint to {address}:{port} ... ',
                         end='',
                     )
-                    self._cmd(cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': str(max_dns_retry)})
+                    self._cmd(
+                        cmd, env={'WG_ENDPOINT_RESOLUTION_RETRIES': str(max_dns_retry)}
+                    )
                     print('done')
                 except:
                     print(f'Error\nPlease try to run command manually:\n{cmd}')

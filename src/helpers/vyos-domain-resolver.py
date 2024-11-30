@@ -183,10 +183,15 @@ def update_interfaces(config, node):
                 # check peer if peer address is not ipv4 and not ipv6
                 if 'address' in peer_config and not is_ip(peer_config['address']):
                     # check latest handshake
-                    check_wireguard_peer_public_keys[interface].append(peer_config['public_key'])
+                    check_wireguard_peer_public_keys[interface].append(
+                        peer_config['public_key']
+                    )
 
         now_time = time.time()
-        for interface, check_peer_public_keys in check_wireguard_peer_public_keys.items():
+        for (
+            interface,
+            check_peer_public_keys
+        ) in check_wireguard_peer_public_keys.items():
             if len(check_peer_public_keys) == 0:
                 continue
 
@@ -194,7 +199,10 @@ def update_interfaces(config, node):
             handshakes = intf.operational.get_latest_handshakes()
 
             for public_key, handshake_time in handshakes.items():
-                if public_key in check_peer_public_keys and (handshake_time == 0 or now_time - handshake_time > handshake_threshold):
+                if public_key in check_peer_public_keys and (
+                    handshake_time == 0
+                    or now_time - handshake_time > handshake_threshold
+                ):
                     intf.operational.reset_peer(public_key=public_key)
 
                     print(f'Wireguard: reset {interface} peer {public_key}')
