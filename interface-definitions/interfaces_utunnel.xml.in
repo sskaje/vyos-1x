@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<interfaceDefinition>
+  <node name="interfaces">
+    <children>
+      <tagNode name="utunnel" owner="${vyos_conf_scripts_dir}/interfaces_custom_tunnel.py">
+        <properties>
+          <help>Tunnel interface</help>
+          <priority>400</priority>
+          <constraint>
+            <regex>utun[0-9]+</regex>
+          </constraint>
+          <constraintErrorMessage>tunnel interface must be named utunN</constraintErrorMessage>
+          <valueHelp>
+            <format>utunN</format>
+            <description>Tunnel interface name</description>
+          </valueHelp>
+        </properties>
+        <children>
+          #include <include/generic-description.xml.i>
+          #include <include/interface/address-ipv4-ipv6.xml.i>
+          #include <include/interface/disable.xml.i>
+
+          <leafNode name="manage-type">
+            <properties>
+              <help>Manage type</help>
+              <completionHelp>
+                <list>external</list>
+              </completionHelp>
+              <valueHelp>
+                <format>external</format>
+                <description>Controlled by external program</description>
+              </valueHelp>
+              <constraint>
+                <regex>(external)</regex>
+              </constraint>
+            </properties>
+          </leafNode>
+
+          <leafNode name="tunnel-type">
+            <properties>
+              <help>Tunnel type</help>
+              <completionHelp>
+                <script>${vyos_completion_dir}/list_utunnel_types.py</script>
+              </completionHelp>
+              <constraint>
+                <regex>.{0,255}</regex>
+              </constraint>
+              <constraintErrorMessage>Tunnel type too long (limit 255 characters)</constraintErrorMessage>
+            </properties>
+          </leafNode>
+
+        </children>
+      </tagNode>
+    </children>
+  </node>
+</interfaceDefinition>
