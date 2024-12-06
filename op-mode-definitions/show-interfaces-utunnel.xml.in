@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<interfaceDefinition>
+  <node name="show">
+    <children>
+      <node name="interfaces">
+        <children>
+          <tagNode name="utunnel">
+            <properties>
+              <help>Show specified custom tunnel interface information</help>
+              <completionHelp>
+                <path>interfaces utunnel</path>
+              </completionHelp>
+            </properties>
+	        <command>${vyos_op_scripts_dir}/utunnel.py show_status --interface="$4" </command>
+          </tagNode>
+        </children>
+      </node>
+    </children>
+  </node>
+</interfaceDefinition>

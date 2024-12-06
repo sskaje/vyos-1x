@@ -178,6 +178,12 @@
                       <valueless/>
                     </properties>
                   </leafNode>
+                  <leafNode name="utunnel">
+                    <properties>
+                      <help>Custom tunnel interface</help>
+                      <valueless/>
+                    </properties>
+                  </leafNode>
                   <leafNode name="virtual-ethernet">
                     <properties>
                       <help>Virtual Ethernet interface</help>

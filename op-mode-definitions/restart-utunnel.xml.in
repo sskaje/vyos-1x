@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<interfaceDefinition>
+  <node name="restart">
+    <children>
+      <tagNode name="utunnel">
+        <properties>
+          <help>Restart a custom tunnel backend service</help>
+          <completionHelp>
+            <path>interfaces utunnel</path>
+          </completionHelp>
+        </properties>
+        <command>sudo ${vyos_op_scripts_dir}/utunnel.py restart --interface="$3"</command>
+      </tagNode>
+    </children>
+  </node>
+</interfaceDefinition>
