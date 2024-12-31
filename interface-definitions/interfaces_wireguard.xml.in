@@ -40,6 +40,19 @@
             </properties>
             <defaultValue>0</defaultValue>
           </leafNode>
+          <leafNode name="max-dns-retry">
+            <properties>
+              <help>Max retry when DNS resolves failed.</help>
+              <valueHelp>
+                <format>u32:1-15</format>
+                <description>Max retry times</description>
+              </valueHelp>
+              <constraint>
+                <validator name="numeric" argument="--range 1-15"/>
+              </constraint>
+            </properties>
+            <defaultValue>3</defaultValue>
+          </leafNode>
           <leafNode name="private-key">
             <properties>
               <help>Base64 encoded private key</help>
@@ -98,9 +111,14 @@
                     <format>ipv6</format>
                     <description>IPv6 address of remote tunnel endpoint</description>
                   </valueHelp>
+                  <valueHelp>
+                    <format>hostname</format>
+                    <description>Endpoint FQDN</description>
+                  </valueHelp>
                   <constraint>
                     <validator name="ip-address"/>
                     <validator name="ipv6-link-local"/>
+                    <validator name="fqdn"/>
                   </constraint>
                 </properties>
               </leafNode>
