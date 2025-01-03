@@ -92,12 +92,15 @@ class WireGuardOperational(Operational):
         c.set_level(['interfaces', 'wireguard', self.config['ifname']])
         description = c.return_effective_value(['description'])
         ips = c.return_effective_values(['address'])
+        hostnames = c.return_effective_values(['host-name'])
 
         answer = 'interface: {}\n'.format(self.config['ifname'])
         if description:
             answer += '  description: {}\n'.format(description)
         if ips:
             answer += '  address: {}\n'.format(', '.join(ips))
+        if hostnames:
+            answer += '  hostname: {}\n'.format(', '.join(hostnames))
 
         answer += '  public key: {}\n'.format(wgdump['public_key'])
         answer += '  private key: (hidden)\n'
@@ -200,21 +203,30 @@ class WireGuardOperational(Operational):
                 address = c.value(
                     ['interfaces', 'wireguard', self.ifname, 'peer', peer, 'address']
                 )
+                host_name = c.value(
+                    ['interfaces', 'wireguard', self.ifname, 'peer', peer, 'host-name']
+                )
                 port = c.value(
                     ['interfaces', 'wireguard', self.ifname, 'peer', peer, 'port']
                 )
 
-                if not address or not port:
+                if (not address and not host_name) or not port:
                     if peer_name is not None:
                         print(f'Peer {peer_name} endpoint not set')
                     continue
+
+                # address has higher priority than host-name
+                if address:
+                    new_endpoint = f'{address}:{port}'
+                else:
+                    new_endpoint = f'{host_name}:{port}'
 
                 if c.exists(
                     ['interfaces', 'wireguard', self.ifname, 'peer', peer, 'disable']
                 ):
                     continue
 
-                cmd = f'wg set {self.ifname} peer {peer_public_key} endpoint {address}:{port}'
+                cmd = f'wg set {self.ifname} peer {peer_public_key} endpoint {new_endpoint}'
                 try:
                     if (
                         peer_public_key in current_peers
@@ -222,9 +234,9 @@ class WireGuardOperational(Operational):
                         and current_peers[peer_public_key]['endpoint'] is not None
                     ):
                         current_endpoint = current_peers[peer_public_key]['endpoint']
-                        message = f'Resetting {self.ifname} peer {peer_public_key} from {current_endpoint} endpoint to {address}:{port} ... '
+                        message = f'Resetting {self.ifname} peer {peer_public_key} from {current_endpoint} endpoint to {new_endpoint} ... '
                     else:
-                        message = f'Resetting {self.ifname} peer {peer_public_key} endpoint to {address}:{port} ... '
+                        message = f'Resetting {self.ifname} peer {peer_public_key} endpoint to {new_endpoint} ... '
                     print(
                         message,
                         end='',
@@ -334,6 +346,8 @@ class WireGuardIf(Interface):
                         else:
                             # don't set endpoint if address uses domain name
                             continue
+                    elif {'host_name', 'port'} <= set(peer_config):
+                        cmd += ' endpoint {host_name}:{port}'
 
                     self._cmd(
                         cmd.format(**peer_config),

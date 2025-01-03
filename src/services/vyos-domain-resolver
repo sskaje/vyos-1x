@@ -189,8 +189,8 @@ def update_interfaces(config, node):
         for interface, wireguard in wireguard_interfaces.items():
             check_wireguard_peer_public_keys[interface] = []
             for peer, peer_config in wireguard['peer'].items():
-                # check peer if peer address is not ipv4 and not ipv6
-                if 'address' in peer_config and not is_ip(peer_config['address']):
+                # check peer if peer host-name or address is set
+                if 'host-name' in peer_config or 'address' in peer_config:
                     # check latest handshake
                     check_wireguard_peer_public_keys[interface].append(
                         peer_config['public_key']

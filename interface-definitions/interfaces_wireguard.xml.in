@@ -111,13 +111,20 @@
                     <format>ipv6</format>
                     <description>IPv6 address of remote tunnel endpoint</description>
                   </valueHelp>
+                  <constraint>
+                    <validator name="ip-address"/>
+                    <validator name="ipv6-link-local"/>
+                  </constraint>
+                </properties>
+              </leafNode>
+              <leafNode name="host-name">
+                <properties>
+                  <help>Host/domain name of tunnel endpoint</help>
                   <valueHelp>
                     <format>hostname</format>
                     <description>Endpoint FQDN</description>
                   </valueHelp>
                   <constraint>
-                    <validator name="ip-address"/>
-                    <validator name="ipv6-link-local"/>
                     <validator name="fqdn"/>
                   </constraint>
                 </properties>

@@ -59,7 +59,7 @@ def get_config(config=None):
     wireguard['peers_need_resolve'] = []
     if 'peer' in wireguard:
         for peer, peer_config in wireguard['peer'].items():
-            if 'disable' not in peer_config and 'address' in peer_config and not is_ip(peer_config['address']):
+            if 'disable' not in peer_config and 'host_name' in peer_config:
                 wireguard['peers_need_resolve'].append(peer)
 
     return wireguard
@@ -96,16 +96,19 @@ def verify(wireguard):
             if 'public_key' not in peer:
                 raise ConfigError(f'Wireguard public-key required for peer "{tmp}"!')
 
-            if ('address' in peer and 'port' not in peer) or ('port' in peer and 'address' not in peer):
-                raise ConfigError('Both Wireguard port and address must be defined '
-                                  f'for peer "{tmp}" if either one of them is set!')
-
             if peer['public_key'] in public_keys:
                 raise ConfigError(f'Duplicate public-key defined on peer "{tmp}"')
 
             if 'disable' not in peer:
                 if is_wireguard_key_pair(wireguard['private_key'], peer['public_key']):
                     raise ConfigError(f'Peer "{tmp}" has the same public key as the interface "{wireguard["ifname"]}"')
+
+            if 'port' not in peer:
+                if 'host_name' in peer or 'address' in peer:
+                    raise ConfigError(f'Missing "host-name" or "address" on peer "{tmp}"')
+            else:
+                if 'host_name' not in peer and 'address' not in peer:
+                    raise ConfigError(f'Missing "host-name" and "address" on peer "{tmp}"')
 
             public_keys.append(peer['public_key'])
 
