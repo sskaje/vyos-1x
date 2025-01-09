@@ -90,6 +90,9 @@ def verify(wireguard):
         for tmp in wireguard['peer']:
             peer = wireguard['peer'][tmp]
 
+            if 'host_name' in peer and 'address' in peer:
+                raise ConfigError('"host-name" and "address" are mutually exclusive')
+
             if 'allowed_ips' not in peer:
                 raise ConfigError(f'Wireguard allowed-ips required for peer "{tmp}"!')
 
