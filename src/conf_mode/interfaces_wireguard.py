@@ -30,7 +30,6 @@ from vyos.utils.kernel import check_kmod
 from vyos.utils.network import check_port_availability
 from vyos.utils.network import is_wireguard_key_pair
 from vyos.utils.process import call
-from vyos.template import is_ip
 from vyos import ConfigError
 from vyos import airbag
 from pathlib import Path
