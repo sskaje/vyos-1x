@@ -28,4 +28,10 @@
 {%         set _ = registry_list.append(r) %}
 {%     endfor %}
 unqualified-search-registries = {{ registry_list }}
+{%     for r, r_options in registry.items() if r_options.disable is not vyos_defined %}
+[[registry]]
+location = "{{ r_options.mirror if r_options.mirror is vyos_defined else r }}"
+insecure = {{ 'true' if r_options.insecure is vyos_defined else 'false' }}
+prefix = "{{ r }}"
+{%     endfor %}
 {% endif %}

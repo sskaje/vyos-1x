@@ -538,6 +538,17 @@
         <children>
           #include <include/interface/authentication.xml.i>
           #include <include/generic-disable-node.xml.i>
+          <leafNode name="insecure">
+            <properties>
+              <help>Use HTTP instead of HTTPS</help>
+              <valueless/>
+            </properties>
+          </leafNode>
+          <leafNode name="mirror">
+            <properties>
+              <help>Registry mirror, use host:port</help>
+            </properties>
+          </leafNode>
         </children>
       </tagNode>
     </children>
