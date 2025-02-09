@@ -54,7 +54,7 @@
         flags interval
         auto-merge
 {%             if group_conf.network is vyos_defined or includes or group_conf.source_file %}
-        elements = { {{ group_conf | nft_nested_group_with_list(group.network_group, 'network') | join(",") }} }
+        elements = { {{ group_conf | nft_nested_group_with_list(group.network_group, 'network-group', 'network') | join(",") }} }
 {%             endif %}
     }
 {%         endfor %}
@@ -67,7 +67,7 @@
         flags interval
         auto-merge
 {%             if group_conf.network is vyos_defined or includes or group_conf.source_file  %}
-        elements = { {{ group_conf | nft_nested_group_with_list(group.ipv6_network_group, 'network') | join(",") }} }
+        elements = { {{ group_conf | nft_nested_group_with_list(group.ipv6_network_group, 'ipv6-network-group', 'network') | join(",") }} }
 {%             endif %}
     }
 {%         endfor %}

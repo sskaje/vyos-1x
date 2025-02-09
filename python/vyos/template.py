@@ -669,20 +669,23 @@ def nft_nested_group(out_list, includes, groups, key):
     return out_list
 
 @register_filter('nft_nested_group_with_list')
-def nft_nested_group_with_list(group_node, groups, key):
+def nft_nested_group_with_list(group_node, groups, group_name, key):
     if not vyos_defined(group_node):
         return []
 
     out_list = []
 
     def add_includes(group, key):
-
         if 'source_file' in group:
             file_entries = read_file(group['source_file']).split('\n')
 
             for item in file_entries:
                 item = item.strip()
-                if is_ip_network(item):
+                if not is_ip_network(item):
+                    continue
+
+                if (group_name == 'network-group' and is_ipv4(item)) or \
+                        (group_name == 'ipv6-network-group' and is_ipv6(item)):
                     out_list.append(item)
 
         elif key in group:
