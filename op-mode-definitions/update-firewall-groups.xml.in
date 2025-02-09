@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<interfaceDefinition>
+  <node name="update">
+    <children>
+      <leafNode name="firewall-groups">
+        <properties>
+          <help>Update firewall sets</help>
+        </properties>
+        <command>sudo ${vyos_libexec_dir}/firewall-group-update.py</command>
+      </leafNode>
+    </children>
+  </node>
+</interfaceDefinition>

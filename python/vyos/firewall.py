@@ -794,3 +794,24 @@ def geoip_update(firewall, force=False):
             return False
 
         return True
+
+def firewall_group_update(config):
+    nftables_nat_config = '/run/nftables_nat.conf'
+    nftables_policy_config = '/run/nftables_policy.conf'
+
+    if 'nat' in config:
+        render(nftables_nat_config, 'firewall/nftables-nat.j2', config['nat'])
+
+        result = run(f'nft --file {nftables_nat_config}')
+        if result != 0:
+            print('Error: Failed to update nat')
+            return False
+
+    if 'policy' in config:
+        render(nftables_policy_config, 'firewall/nftables-policy.j2', config['policy'])
+        result = run(f'nft --file {nftables_policy_config}')
+        if result != 0:
+            print('Error: Failed to update policy')
+            return False
+
+    return True
