@@ -684,8 +684,9 @@ def nft_nested_group_with_list(group_node, groups, group_name, key):
                 if not is_ip_network(item):
                     continue
 
-                if (group_name == 'network-group' and is_ipv4(item)) or \
-                        (group_name == 'ipv6-network-group' and is_ipv6(item)):
+                if (group_name == 'network-group' and is_ipv4(item)) or (
+                    group_name == 'ipv6-network-group' and is_ipv6(item)
+                ):
                     out_list.append(item)
 
         elif key in group:

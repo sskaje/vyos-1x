@@ -19,18 +19,24 @@ import sys
 from vyos.configquery import ConfigTreeQuery
 from vyos.firewall import firewall_group_update
 
+
 def get_config(config=None):
     if config:
         conf = config
     else:
         conf = ConfigTreeQuery()
 
-    config = conf.get_config_dict([], key_mangling=('-', '_'), get_first_key=True,
-                                    no_tag_node_value_mangle=True)
+    config = conf.get_config_dict(
+        [], key_mangling=('-', '_'), get_first_key=True, no_tag_node_value_mangle=True
+    )
 
-    firewall_group = conf.get_config_dict(['firewall', 'group'], key_mangling=('-', '_'),
-                                                             get_first_key=True,
-                                                             no_tag_node_value_mangle=True)
+    firewall_group = conf.get_config_dict(
+        ['firewall', 'group'],
+        key_mangling=('-', '_'),
+        get_first_key=True,
+        no_tag_node_value_mangle=True
+    )
+
     if 'nat' in config:
         config['nat']['firewall_group'] = firewall_group
 
@@ -41,7 +47,6 @@ def get_config(config=None):
 
 
 if __name__ == '__main__':
-
     config = get_config()
 
     if not firewall_group_update(config):
