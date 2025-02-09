@@ -22,6 +22,7 @@ from jinja2 import ChainableUndefined
 from vyos.defaults import directories
 from vyos.utils.dict import dict_search_args
 from vyos.utils.file import makedir
+from vyos.utils.file import read_file
 from vyos.utils.permission import chmod
 from vyos.utils.permission import chown
 
@@ -665,6 +666,38 @@ def nft_nested_group(out_list, includes, groups, key):
 
     for name in includes:
         add_includes(name)
+    return out_list
+
+@register_filter('nft_nested_group_with_list')
+def nft_nested_group_with_list(group_node, groups, key):
+    if not vyos_defined(group_node):
+        return []
+
+    out_list = []
+
+    def add_includes(group, key):
+
+        if 'source_file' in group:
+            file_entries = read_file(group['source_file']).split('\n')
+
+            for item in file_entries:
+                item = item.strip()
+                if is_ip_network(item):
+                    out_list.append(item)
+
+        elif key in group:
+            for item in group[key]:
+                if item in out_list:
+                    continue
+                out_list.append(item)
+
+        if 'include' in group:
+            for name in group['include']:
+                if name in groups:
+                    add_includes(groups[name], key)
+
+    add_includes(group_node, key)
+
     return out_list
 
 @register_filter('nat_rule')

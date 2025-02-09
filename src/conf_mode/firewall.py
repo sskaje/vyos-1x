@@ -442,6 +442,12 @@ def verify(firewall):
                 for group_name, group in groups.items():
                     verify_nested_group(group_name, group, groups, [])
 
+        if 'network_group' in firewall['group']:
+            groups = firewall['group']['network_group']
+            for group_name, group in groups.items():
+                if 'network' in group and 'source_file' in group:
+                    raise ConfigError(f'`network` and `source-file` are mutually exclusive in network-groups')
+
     for family in ['ipv4', 'ipv6', 'bridge']:
         if family in firewall:
             for chain in ['name','forward','input','output', 'prerouting']:
