@@ -17,10 +17,30 @@ from vyos.utils.dict import dict_search_args
 from vyos.template import bracketize_ipv6
 
 
+def log_nat_type_str(nat_type):
+    nat_types = {
+        'destination': 'DST',
+        'source': 'SRC',
+        'output': 'OUT',
+    }
+
+    return nat_types.get(nat_type, 'SRC')
+
+
+def log_translation_prefix(nat_type):
+    translation_prefixes = {
+        'destination': 'd',
+        'source': 's',
+        'output': 'd',
+    }
+
+    return translation_prefixes.get(nat_type, 'SRC')
+
+
 def parse_nat_rule(rule_conf, rule_id, nat_type, ipv6=False):
     output = []
     ip_prefix = 'ip6' if ipv6 else 'ip'
-    log_prefix = ('DST' if nat_type == 'destination' else 'SRC') + f'-NAT-{rule_id}'
+    log_prefix = log_nat_type_str(nat_type) + f'-NAT-{rule_id}'
     log_suffix = ''
 
     if ipv6:
@@ -81,7 +101,7 @@ def parse_nat_rule(rule_conf, rule_id, nat_type, ipv6=False):
                 translation_output.append(f'to {redirect_port}')
         else:
 
-            translation_prefix = nat_type[:1]
+            translation_prefix = log_translation_prefix(nat_type)
             translation_output = [f'{translation_prefix}nat']
 
             if addr and is_ip_network(addr):
@@ -157,7 +177,7 @@ def parse_nat_rule(rule_conf, rule_id, nat_type, ipv6=False):
                 hash_input = ' . '.join(hash_input_items)
                 translation_str += f' jhash ' + f'{hash_input}' + ' mod 100 map ' + '{ ' + f'{elements}' + ' }'
 
-    for target in ['source', 'destination']:
+    for target in ['source', 'destination', 'output']:
         if target not in rule_conf:
             continue
 
@@ -263,7 +283,7 @@ def parse_nat_rule(rule_conf, rule_id, nat_type, ipv6=False):
 
 def parse_nat_static_rule(rule_conf, rule_id, nat_type):
     output = []
-    log_prefix = ('STATIC-DST' if nat_type == 'destination' else 'STATIC-SRC') + f'-NAT-{rule_id}'
+    log_prefix = 'STATIC-' + log_nat_type_str(nat_type) + f'-NAT-{rule_id}'
     log_suffix = ''
 
     ignore_type_addr = False
@@ -279,10 +299,10 @@ def parse_nat_static_rule(rule_conf, rule_id, nat_type):
         translation_str = 'return'
         log_suffix = '-EXCL'
     elif 'translation' in rule_conf:
-        translation_prefix = nat_type[:1]
+        translation_prefix = log_translation_prefix(nat_type)
         translation_output = [f'{translation_prefix}nat']
         addr = dict_search_args(rule_conf, 'translation', 'address')
-        map_addr =  dict_search_args(rule_conf, 'destination', 'address')
+        map_addr = dict_search_args(rule_conf, 'destination', 'address')
 
         if nat_type == 'source':
             addr, map_addr = map_addr, addr # Swap
