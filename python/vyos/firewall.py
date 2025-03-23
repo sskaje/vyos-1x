@@ -538,6 +538,9 @@ def parse_rule(rule_conf, hook, fw_name, rule_id, ip_name):
                     log_snaplen = rule_conf['log_options']['snapshot_length']
                     output.append(f'snaplen {log_snaplen}')
 
+    if 'trace' in rule_conf:
+        output.append(' meta nftrace set 1')
+
     output.append('counter')
 
     if 'add_address_to_group' in rule_conf:

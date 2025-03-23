@@ -54,6 +54,12 @@
                   </node>
                 </children>
               </node>
+              <leafNode name="trace">
+                <properties>
+                  <help>Enable nftrace on this rule</help>
+                  <valueless/>
+                </properties>
+              </leafNode>
             </children>
           </tagNode>
         </children>
@@ -117,6 +123,12 @@
                   #include <include/nat-translation-options.xml.i>
                 </children>
               </node>
+              <leafNode name="trace">
+                <properties>
+                  <help>Enable nftrace on this rule</help>
+                  <valueless/>
+                </properties>
+              </leafNode>
             </children>
           </tagNode>
         </children>
@@ -150,6 +162,12 @@
                   #include <include/ipv4-address-prefix.xml.i>
                 </children>
               </node>
+              <leafNode name="trace">
+                <properties>
+                  <help>Enable nftrace on this rule</help>
+                  <valueless/>
+                </properties>
+              </leafNode>
             </children>
           </tagNode>
         </children>

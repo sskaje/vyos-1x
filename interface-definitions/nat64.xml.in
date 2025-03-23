@@ -107,6 +107,12 @@
                   </tagNode>
                 </children>
               </node>
+              <leafNode name="trace">
+                <properties>
+                  <help>Enable nftrace on this rule</help>
+                  <valueless/>
+                </properties>
+              </leafNode>
             </children>
           </tagNode>
         </children>

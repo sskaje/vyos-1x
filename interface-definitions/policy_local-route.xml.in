@@ -74,6 +74,12 @@
                 </children>
               </node>
               #include <include/interface/inbound-interface.xml.i>
+              <leafNode name="trace">
+                <properties>
+                  <help>Enable nftrace on this rule</help>
+                  <valueless/>
+                </properties>
+              </leafNode>
             </children>
           </tagNode>
         </children>
@@ -149,6 +155,12 @@
                 </children>
               </node>
               #include <include/interface/inbound-interface.xml.i>
+              <leafNode name="trace">
+                <properties>
+                  <help>Enable nftrace on this rule</help>
+                  <valueless/>
+                </properties>
+              </leafNode>
             </children>
           </tagNode>
         </children>

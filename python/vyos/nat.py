@@ -249,6 +249,9 @@ def parse_nat_rule(rule_conf, rule_id, nat_type, ipv6=False):
                 operator = '!='
             output.append(f' ip {prefix}addr {operator} @FQDN_nat_{nat_type}_{rule_id}_{prefix}')
 
+    if 'trace' in rule_conf:
+        output.append(' meta nftrace set 1')
+
     output.append('counter')
 
     if 'log' in rule_conf:
